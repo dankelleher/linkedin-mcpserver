@@ -12,19 +12,19 @@ MCP (Model Context Protocol) is an open protocol that standardizes how applicati
 
 ### 🔍 LinkedIn API Tools
 
-**Profile Search** - Find LinkedIn profiles with advanced filters
-**Profile Retrieval** - Get detailed information about LinkedIn profiles
-**Job Search** - Discover job opportunities with customized criteria
-**Messaging** - Send messages to LinkedIn connections
-**Network Stats** - Access connection statistics and analytics
+- **Profile Search** - Find LinkedIn profiles with advanced filters
+- **Profile Retrieval** - Get detailed information about LinkedIn profiles
+- **Job Search** - Discover job opportunities with customized criteria
+- **Messaging** - Send messages to LinkedIn connections
+- **Network Stats** - Access connection statistics and analytics
 
 ### 🛠️ Technical Highlights
 
-**TypeScript** - Built with modern TypeScript for type safety and developer experience
-**Dependency Injection** - Uses TSyringe for clean, testable architecture
-**Structured Logging** - Comprehensive logging with Pino for better observability
-**MCP Integration** - Implements the Model Context Protocol for seamless AI assistant connectivity
-**REST Client** - Axios-powered API client with automatic token management
+- **TypeScript** - Built with modern TypeScript for type safety and developer experience
+- **Dependency Injection** - Uses TSyringe for clean, testable architecture
+- **Structured Logging** - Comprehensive logging with Pino for better observability
+- **MCP Integration** - Implements the Model Context Protocol for seamless AI assistant connectivity
+- **REST Client** - Axios-powered API client with automatic token management
 
 ### 🚀 Development
 
@@ -52,8 +52,19 @@ To use with Claude Desktop or other MCP-compatible AI assistants:
 
 #### Configuration
 
-macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```bash
+{
+  "mcpServers": {
+    "linkedin-mcp-server": {
+      "command": "/path/to/linkedin-mcp-server/build/index.js"
+    }
+  }
+}
+```
 
 ### 🔧 Debugging
 
