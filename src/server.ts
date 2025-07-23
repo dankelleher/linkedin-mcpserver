@@ -40,8 +40,8 @@ export class LinkedInMcpServer {
   public async start(transport: StdioServerTransport): Promise<void> {
     this.logger.info('Starting LinkedIn MCP Server')
     try {
-      await this.tokenService.authenticate()
-      this.logger.info('LinkedIn authentication successful')
+      // Connect to MCP transport without authentication
+      // Authentication will happen lazily on first API call
       await this.server.connect(transport)
       this.logger.info('LinkedIn MCP Server started successfully')
     } catch (error) {
@@ -60,6 +60,19 @@ export class LinkedInMcpServer {
   }
 
   /**
+   * Ensures authentication before API calls
+   * Implements lazy authentication pattern
+   */
+  private async ensureAuthenticated(): Promise<void> {
+    try {
+      await this.tokenService.authenticate()
+    } catch (error) {
+      this.logger.error('LinkedIn authentication failed', error)
+      throw new Error(`LinkedIn authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
    * Register MCP tools for LinkedIn API interactions
    * Implements tool definitions for various LinkedIn data operations
    */
@@ -72,6 +85,7 @@ export class LinkedInMcpServer {
       async (params) => {
         this.logger.info('Executing LinkedIn People Search', { keywords: params.keywords })
         try {
+          await this.ensureAuthenticated()
           const results = await this.clientService.searchPeople(params)
           return this.createResourceResponse(results)
         } catch (error) {
@@ -92,6 +106,7 @@ export class LinkedInMcpServer {
           urnId: params.urnId
         })
         try {
+          await this.ensureAuthenticated()
           const profile = await this.clientService.getProfile(params)
           return this.createResourceResponse(profile)
         } catch (error) {
@@ -112,6 +127,7 @@ export class LinkedInMcpServer {
           location: params.location
         })
         try {
+          await this.ensureAuthenticated()
           const jobs = await this.clientService.searchJobs(params)
           return this.createResourceResponse(jobs)
         } catch (error) {
@@ -131,6 +147,7 @@ export class LinkedInMcpServer {
           recipientUrn: params.recipientUrn
         })
         try {
+          await this.ensureAuthenticated()
           const result = await this.clientService.sendMessage(params)
           return this.createResourceResponse(result)
         } catch (error) {
@@ -148,6 +165,7 @@ export class LinkedInMcpServer {
       async () => {
         this.logger.info('Retrieving Current User Profile')
         try {
+          await this.ensureAuthenticated()
           const profile = await this.clientService.getMyProfile()
           return this.createResourceResponse(profile)
         } catch (error) {
@@ -165,6 +183,7 @@ export class LinkedInMcpServer {
       async () => {
         this.logger.info('Retrieving Network Statistics')
         try {
+          await this.ensureAuthenticated()
           const stats = await this.clientService.getNetworkStats()
           return this.createResourceResponse(stats)
         } catch (error) {
@@ -182,6 +201,7 @@ export class LinkedInMcpServer {
       async () => {
         this.logger.info('Retrieving User Connections')
         try {
+          await this.ensureAuthenticated()
           const connections = await this.clientService.getConnections()
           return this.createResourceResponse(connections)
         } catch (error) {
