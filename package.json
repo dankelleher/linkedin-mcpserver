@@ -5,14 +5,14 @@
   "private": true,
   "type": "module",
   "bin": {
-    "linkedin-mcp-server": "./build/index.js"
+    "linkedin-mcp-server": "./build/main.js"
   },
   "files": [
     "build"
   ],
   "scripts": {
-    "build": "tsc && node --env-file=.env -e \"require('fs').chmodSync('build/index.js', '755')\"",
-    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "build": "tsc && node --env-file=.env -e \"require('fs').chmodSync('build/main.js', '755')\"",
+    "inspector": "npx @modelcontextprotocol/inspector build/main.js",
     "start:dev": "tsx --env-file=.env src/main.ts"
   },
   "dependencies": {
