@@ -7,7 +7,7 @@ import { LoggerService } from './services/logger.service.js'
 import { TokenService } from './services/token.service.js'
 
 import type { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { McpResourceResponse } from 'types/mcp.js'
+import { McpResourceResponse } from './types/mcp.js'
 
 /**
  * LinkedInMcpServer - Main server class for LinkedIn MCP integration

@@ -1,6 +1,6 @@
 import { pino } from 'pino'
 import { injectable, singleton } from 'tsyringe'
-import { ILogger } from 'types/logger.js'
+import { ILogger } from '../types/logger.js'
 
 /**
  * LoggerService - Centralized logging service using Pino

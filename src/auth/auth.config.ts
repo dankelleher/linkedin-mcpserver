@@ -1,4 +1,4 @@
-import { envSchema } from 'schemas/env.schema.js'
+import { envSchema } from '../schemas/env.schema.js'
 import { inject, injectable } from 'tsyringe'
 import { z } from 'zod'
 import { LoggerService } from '../services/logger.service.js'

@@ -17,8 +17,8 @@ import type {
   SearchPeopleParams,
   SearchPeopleResult,
   SendMessageParams
-} from 'types/linkedin.js'
-import type { DetailedMetrics } from 'types/metrics.js'
+} from '../types/linkedin.js'
+import type { DetailedMetrics } from '../types/metrics.js'
 
 /**
  * ClientService - Manages the communication with LinkedIn API
