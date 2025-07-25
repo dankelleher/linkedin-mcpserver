@@ -22,10 +22,12 @@ import { LoggerService } from './logger.service.js'
  */
 @injectable()
 export class TokenService {
-  private accessToken: string | null = null
+  private accessToken: string | null = process.env.ACCESS_TOKEN || null
   private readonly EXPIRY_THRESHOLD = 5 * 60 * 1000
-  private refreshToken: string | null = null
-  private tokenExpiry: number | null = null
+  private refreshToken: string | null = process.env.REFRESH_TOKEN || null
+  private tokenExpiry: number | null = process.env.ACCESS_TOKEN_EXPIRES_IN 
+    ? Date.now() + parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 1000 
+    : null
 
   private readonly getAuthUrl = _.memoize(() => this.config.getAuthUrl())
   private readonly getClientId = _.memoize(() => this.config.getClientId())
