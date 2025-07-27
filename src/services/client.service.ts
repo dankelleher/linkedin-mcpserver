@@ -1,5 +1,5 @@
 import { inject, injectable } from 'tsyringe'
-import { RestliClient } from 'linkedin-api-client'
+import { RestliClient, type RestliEntity } from 'linkedin-api-client'
 
 import { LoggerService } from './logger.service.js'
 import { MetricsService } from './metrics.service.js'
@@ -47,7 +47,7 @@ export class ClientService {
    * @param data - Optional data to send with the request
    * @returns Typed API result
    */
-  private async makeRequest<T>(method: 'get' | 'finder' | 'create' | 'update', resourcePath: string, params?: Record<string, any>, data?: unknown): Promise<T> {
+  private async makeRequest<T, D = RestliEntity>(method: 'get' | 'finder' | 'create' | 'update', resourcePath: string, params?: Record<string, any>, data?: D): Promise<T> {
     try {
       const startTime = Date.now()
       await this.tokenService.authenticate()
@@ -73,7 +73,7 @@ export class ClientService {
         case 'create':
           response = await this.restliClient.create({
             resourcePath,
-            entity: data,
+            entity: data!,
             accessToken
           })
           break
@@ -81,7 +81,7 @@ export class ClientService {
           response = await this.restliClient.update({
             resourcePath,
             id: params?.id,
-            patchSetObject: data,
+            entity: data!,
             accessToken
           })
           break
@@ -142,7 +142,6 @@ export class ClientService {
       throw new Error('Either publicId or urnId must be provided')
     }
 
-    const id = params.urnId || params.publicId
     const resourcePath = params.urnId ? `/people/${encodeURIComponent(params.urnId)}` : `/people/${params.publicId}`
 
     return this.makeRequest<LinkedInProfile>('get', resourcePath)
