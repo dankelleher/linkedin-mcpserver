@@ -25,8 +25,8 @@ export class TokenService {
   private accessToken: string | null = process.env.ACCESS_TOKEN || null
   private readonly EXPIRY_THRESHOLD = 5 * 60 * 1000
   private refreshToken: string | null = process.env.REFRESH_TOKEN || null
-  private tokenExpiry: number | null = process.env.ACCESS_TOKEN_EXPIRES_IN 
-    ? Date.now() + parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 1000 
+  private tokenExpiry: number | null = process.env.ACCESS_TOKEN_EXPIRES_IN
+    ? Date.now() + parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 1000
     : null
 
   private readonly getAuthUrl = _.memoize(() => this.config.getAuthUrl())
@@ -57,6 +57,7 @@ export class TokenService {
    * @throws Error if not authenticated
    */
   public getAccessToken(): string {
+    console.log('Accessing token:', this.accessToken)
     if (!this.accessToken) {
       this.logger.warn('Unauthorized token access attempt.')
       throw new Error('Authentication required. Please call authenticate() first.')
@@ -75,7 +76,7 @@ export class TokenService {
    * @returns True if a valid token exists
    */
   private hasValidToken(): boolean {
-    return !!(this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry)
+    return !!(this.accessToken && (this.tokenExpiry ? (Date.now() < this.tokenExpiry) : true))
   }
 
   /**
@@ -83,7 +84,7 @@ export class TokenService {
    * @returns True if token will expire soon
    */
   private isTokenExpiringSoon(): boolean {
-    return this.tokenExpiry ? this.tokenExpiry - Date.now() < this.EXPIRY_THRESHOLD : true
+    return this.tokenExpiry ? this.tokenExpiry - Date.now() < this.EXPIRY_THRESHOLD : false
   }
 
   /**

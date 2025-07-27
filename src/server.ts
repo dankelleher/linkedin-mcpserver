@@ -29,7 +29,17 @@ export class LinkedInMcpServer {
       version: process.env.MCP_SERVER_VERSION ?? '0.1.0',
       port: process.env.MCP_SERVER_PORT ?? 5050
     })
-    this.registerTools()
+    this.registerTools();
+
+    (async () => {
+        // test simple request
+        await this.ensureAuthenticated()
+        const results = await this.clientService.getMyProfile()
+        console.error(results)
+    })().catch((error:unknown) => {
+        this.logger.error('Error during LinkedIn MCP Server initialization', error)
+        throw error
+    })
   }
 
   /**

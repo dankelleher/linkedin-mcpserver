@@ -24,6 +24,9 @@ async function main(): Promise<void> {
     const server = container.resolve(LinkedInMcpServer)
     setupShutdownHandlers(server, logger)
     const transport = new StdioServerTransport()
+
+
+
     await server.start(transport)
   } catch (error) {
     const logger = container.isRegistered(LoggerService) ? container.resolve(LoggerService) : console

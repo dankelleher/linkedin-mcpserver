@@ -1,5 +1,5 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { inject, injectable } from 'tsyringe'
+import { RestliClient } from 'linkedin-api-client'
 
 import { LoggerService } from './logger.service.js'
 import { MetricsService } from './metrics.service.js'
@@ -28,44 +28,71 @@ import type { DetailedMetrics } from '../types/metrics.js'
  */
 @injectable()
 export class ClientService {
-  private readonly baseUrl = 'https://api.linkedin.com/v2'
+  private restliClient: RestliClient
 
   constructor(
     @inject(TokenService) private readonly tokenService: TokenService,
     @inject(LoggerService) private readonly loggerService: LoggerService,
     @inject(MetricsService) private readonly metricsService: MetricsService
-  ) {}
+  ) {
+    this.restliClient = new RestliClient()
+  }
 
   /**
-   * Makes an authenticated request to the LinkedIn API
+   * Makes an authenticated request to the LinkedIn API using RestliClient
    *
-   * @param method - HTTP method (GET, POST)
-   * @param endpoint - Relative API endpoint
+   * @param method - HTTP method (get, finder, create, update)
+   * @param resourcePath - API resource path
+   * @param params - Optional query parameters
    * @param data - Optional data to send with the request
    * @returns Typed API result
    */
-  private async makeRequest<T>(method: 'get' | 'post', endpoint: string, data?: unknown): Promise<T> {
+  private async makeRequest<T>(method: 'get' | 'finder' | 'create' | 'update', resourcePath: string, params?: Record<string, any>, data?: unknown): Promise<T> {
     try {
       const startTime = Date.now()
       await this.tokenService.authenticate()
+      const accessToken = this.tokenService.getAccessToken()
 
-      const config: AxiosRequestConfig = {
-        method,
-        url: `${this.baseUrl}${endpoint}`,
-        headers: {
-          Authorization: `Bearer ${this.tokenService.getAccessToken()}`,
-          'Content-Type': 'application/json'
-        },
-        data
+      let response: any
+      
+      switch (method) {
+        case 'get':
+          response = await this.restliClient.get({
+            resourcePath,
+            accessToken
+          })
+          break
+        case 'finder':
+          response = await this.restliClient.finder({
+            resourcePath,
+            finderName: params?.finderName || 'search',
+            queryParams: params?.queryParams || {},
+            accessToken
+          })
+          break
+        case 'create':
+          response = await this.restliClient.create({
+            resourcePath,
+            entity: data,
+            accessToken
+          })
+          break
+        case 'update':
+          response = await this.restliClient.update({
+            resourcePath,
+            id: params?.id,
+            patchSetObject: data,
+            accessToken
+          })
+          break
       }
 
-      const response: AxiosResponse<T> = await axios(config)
       const responseTime = Date.now() - startTime
-      this.metricsService.recordRequest(endpoint, responseTime)
-      this.loggerService.info(`Successful request to ${endpoint}`)
-      return response.data
+      this.metricsService.recordRequest(resourcePath, responseTime)
+      this.loggerService.info(`Successful request to ${resourcePath}`)
+      return response.data as T
     } catch (error) {
-      this.handleRequestError(error, endpoint)
+      this.handleRequestError(error, resourcePath)
       throw error
     }
   }
@@ -77,11 +104,8 @@ export class ClientService {
    * @param endpoint - API endpoint that failed
    */
   private handleRequestError(error: unknown, endpoint: string): void {
-    if (axios.isAxiosError(error)) {
-      this.loggerService.error(`Request failed for ${endpoint}: ${error.message}`, {
-        status: error.response?.status,
-        data: error.response?.data
-      })
+    if (error instanceof Error) {
+      this.loggerService.error(`Request failed for ${endpoint}: ${error.message}`, error)
     } else {
       this.loggerService.error(`Unexpected error accessing ${endpoint}`, error)
     }
@@ -94,23 +118,17 @@ export class ClientService {
    * @returns People search results
    */
   public async searchPeople(params: SearchPeopleParams): Promise<SearchPeopleResult> {
-    const queryParams = new URLSearchParams()
+    const queryParams: Record<string, any> = {}
+    
+    if (params.keywords) queryParams.keywords = params.keywords
+    if (params.location) queryParams.location = params.location
+    if (params.currentCompany?.length) queryParams['current-company'] = params.currentCompany
+    if (params.industries?.length) queryParams['facet-industry'] = params.industries
 
-    const paramMapping: Record<string, string | undefined> = {
-      keywords: params.keywords,
-      location: params.location
-    }
-
-    Object.entries(paramMapping)
-      .filter(([_, value]) => value !== undefined)
-      .forEach(([key, value]) => queryParams.append(key, value as string))
-
-    this.appendArrayParams(queryParams, {
-      'current-company': params.currentCompany,
-      'facet-industry': params.industries
+    return this.makeRequest<SearchPeopleResult>('finder', '/people', {
+      finderName: 'search',
+      queryParams
     })
-
-    return this.makeRequest<SearchPeopleResult>('get', `/search/people?${queryParams.toString()}`)
   }
 
   /**
@@ -124,21 +142,10 @@ export class ClientService {
       throw new Error('Either publicId or urnId must be provided')
     }
 
-    const idTypeMapping: Record<string, () => string> = {
-      publicId: () => `/people/${params.publicId}`,
-      urnId: () => `/people/${encodeURIComponent(params.urnId as string)}`
-    }
+    const id = params.urnId || params.publicId
+    const resourcePath = params.urnId ? `/people/${encodeURIComponent(params.urnId)}` : `/people/${params.publicId}`
 
-    const idType = Object.keys(idTypeMapping).find((key) => params[key as keyof GetProfileParams])
-    if (!idType) {
-      throw new Error('No valid ID provided')
-    }
-
-    const endpoint =
-      idTypeMapping[idType]() +
-      '?projection=(id,firstName,lastName,profilePicture,headline,summary,industry,location,positions,educations,skills)'
-
-    return this.makeRequest<LinkedInProfile>('get', endpoint)
+    return this.makeRequest<LinkedInProfile>('get', resourcePath)
   }
 
   /**
@@ -148,40 +155,19 @@ export class ClientService {
    * @returns Job search results
    */
   public async searchJobs(params: SearchJobsParams): Promise<SearchJobsResult> {
-    const queryParams = new URLSearchParams()
+    const queryParams: Record<string, any> = {}
+    
+    if (params.keywords) queryParams.keywords = params.keywords
+    if (params.location) queryParams.location = params.location
+    if (params.companies?.length) queryParams['company-name'] = params.companies
+    if (params.jobType?.length) queryParams['job-type'] = params.jobType
 
-    const paramMapping: Record<string, string | undefined> = {
-      keywords: params.keywords,
-      location: params.location
-    }
-
-    Object.entries(paramMapping)
-      .filter(([_, value]) => value !== undefined)
-      .forEach(([key, value]) => queryParams.append(key, value as string))
-
-    this.appendArrayParams(queryParams, {
-      'company-name': params.companies,
-      'job-type': params.jobType
+    return this.makeRequest<SearchJobsResult>('finder', '/jobs', {
+      finderName: 'search',
+      queryParams
     })
-
-    return this.makeRequest<SearchJobsResult>('get', `/jobs/search?${queryParams.toString()}`)
   }
 
-  /**
-   * Helper method to append array parameters to a URLSearchParams object
-   *
-   * @param queryParams - URLSearchParams object to append to
-   * @param paramsMap - Map of parameter names to array values
-   */
-  private appendArrayParams(queryParams: URLSearchParams, paramsMap: Record<string, string[] | undefined>): void {
-    Object.entries(paramsMap)
-      .filter(([_, values]) => values && values.length > 0)
-      .forEach(([paramName, values]) => {
-        ;(values as string[]).forEach((value, index) => {
-          queryParams.append(`${paramName}[${index}]`, value)
-        })
-      })
-  }
 
   /**
    * Sends a message to a LinkedIn connection
@@ -198,7 +184,7 @@ export class ClientService {
       body: params.messageBody,
       messageType: 'INMAIL'
     }
-    return this.makeRequest<MessageResponse>('post', '/messages', messageData)
+    return this.makeRequest<MessageResponse>('create', '/messages', undefined, messageData)
   }
 
   /**
@@ -207,7 +193,7 @@ export class ClientService {
    * @returns Current user profile
    */
   public async getMyProfile(): Promise<LinkedInProfile> {
-    return this.makeRequest<LinkedInProfile>('get', '/me?projection=(id,firstName,lastName,headline,profilePicture)')
+    return this.makeRequest<LinkedInProfile>('get', '/me')
   }
 
   /**
@@ -225,7 +211,10 @@ export class ClientService {
    * @returns List of connections
    */
   public async getConnections(): Promise<ConnectionsResult> {
-    return this.makeRequest<ConnectionsResult>('get', '/connections?start=0&count=100')
+    return this.makeRequest<ConnectionsResult>('finder', '/connections', {
+      finderName: 'connections',
+      queryParams: { start: 0, count: 100 }
+    })
   }
 
   /**
