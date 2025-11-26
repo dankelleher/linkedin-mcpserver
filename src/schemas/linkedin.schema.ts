@@ -47,5 +47,33 @@ export const linkedinApiSchemas = {
     messageBody: z.string().describe('Content of the message to send'),
     recipientUrn: z.string().describe('URN of the message recipient'),
     subject: z.string().optional().default('LinkedIn Connection').describe('Subject of the message')
+  },
+
+  /**
+   * Schema for creating a text post on LinkedIn
+   */
+  createTextPost: {
+    text: z.string().describe('The text content of the post'),
+    visibility: z.enum(['PUBLIC', 'CONNECTIONS']).optional().default('CONNECTIONS').describe('Who can see the post: PUBLIC or CONNECTIONS (1st-degree only)')
+  },
+
+  /**
+   * Schema for creating an article share on LinkedIn
+   */
+  createArticleShare: {
+    url: z.string().url().describe('URL of the article to share'),
+    text: z.string().optional().describe('Commentary text to accompany the article'),
+    title: z.string().optional().describe('Custom title for the article (optional)'),
+    description: z.string().optional().describe('Custom description for the article (optional)'),
+    visibility: z.enum(['PUBLIC', 'CONNECTIONS']).optional().default('CONNECTIONS').describe('Who can see the post: PUBLIC or CONNECTIONS (1st-degree only)')
+  },
+
+  /**
+   * Schema for creating an image share on LinkedIn
+   */
+  createImageShare: {
+    imageUrl: z.string().url().describe('URL of the image to share (must be publicly accessible)'),
+    text: z.string().optional().describe('Commentary text to accompany the image'),
+    visibility: z.enum(['PUBLIC', 'CONNECTIONS']).optional().default('CONNECTIONS').describe('Who can see the post: PUBLIC or CONNECTIONS (1st-degree only)')
   }
 }
