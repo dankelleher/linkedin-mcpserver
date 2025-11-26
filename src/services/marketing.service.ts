@@ -28,8 +28,14 @@ import type {
  *
  * Required scope: rw_ads (read-write) or r_ads (read-only)
  *
- * All endpoints verified against:
+ * All endpoints verified against LinkedIn Marketing API documentation (Nov 2025):
  * https://learn.microsoft.com/en-us/linkedin/marketing/
+ *
+ * **IMPORTANT**: Uses Rest.li protocol with custom parameter encoding.
+ * Query params must NOT be URL-encoded by Axios - Rest.li requires:
+ * - URL-encode URN values only
+ * - Do NOT encode commas, parentheses, or List() syntax
+ * See: https://linkedin.github.io/rest.li/spec/protocol
  */
 @injectable()
 export class MarketingService {
@@ -41,7 +47,12 @@ export class MarketingService {
     @inject(MetricsService) private readonly metricsService: MetricsService
   ) {
     this.axiosClient = axios.create({
-      baseURL: 'https://api.linkedin.com'
+      baseURL: 'https://api.linkedin.com',
+      // Disable Axios's default URL encoding for Rest.li compatibility
+      // Rest.li requires specific encoding: URL-encode values but NOT commas/parentheses
+      paramsSerializer: {
+        encode: (val) => val // Don't encode - we'll handle it manually
+      }
     })
   }
 
@@ -354,6 +365,8 @@ export class MarketingService {
    *
    * Endpoint: GET /rest/adAnalytics?q=analytics
    * Docs: https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting
+   *
+   * Example: ?q=analytics&pivot=CREATIVE&campaigns=List(urn%3Ali%3AsponsoredCampaign%3A123)
    */
   public async getAdAnalytics(params: AdAnalyticsParams): Promise<AdAnalyticsResult> {
     const queryParams: Record<string, any> = {
@@ -361,16 +374,21 @@ export class MarketingService {
       dateRange: `(start:(year:${params.dateRange.start.year},month:${params.dateRange.start.month},day:${params.dateRange.start.day}),end:(year:${params.dateRange.end.year},month:${params.dateRange.end.month},day:${params.dateRange.end.day}))`
     }
 
+    // URNs must be URL-encoded, but List() and commas must NOT be encoded
+    // Example: List(urn%3Ali%3AsponsoredCampaign%3A123,urn%3Ali%3AsponsoredCampaign%3A456)
     if (params.accounts?.length) {
-      queryParams.accounts = `List(${params.accounts.join(',')})`
+      const encodedUrns = params.accounts.map(urn => encodeURIComponent(urn))
+      queryParams.accounts = `List(${encodedUrns.join(',')})`
     }
 
     if (params.campaigns?.length) {
-      queryParams.campaigns = `List(${params.campaigns.join(',')})`
+      const encodedUrns = params.campaigns.map(urn => encodeURIComponent(urn))
+      queryParams.campaigns = `List(${encodedUrns.join(',')})`
     }
 
     if (params.creatives?.length) {
-      queryParams.creatives = `List(${params.creatives.join(',')})`
+      const encodedUrns = params.creatives.map(urn => encodeURIComponent(urn))
+      queryParams.creatives = `List(${encodedUrns.join(',')})`
     }
 
     if (params.pivot) {
