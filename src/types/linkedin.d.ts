@@ -192,3 +192,245 @@ export interface AssetRegistrationResponse {
     mediaArtifact: string
   }
 }
+
+/**
+ * Marketing API types for advertising and campaign management
+ */
+
+// Ad Account Management
+export interface AdAccount {
+  id: string
+  name: string
+  type: 'BUSINESS' | 'ENTERPRISE'
+  status: 'ACTIVE' | 'DRAFT' | 'CANCELED' | 'PENDING_DELETION' | 'REMOVED'
+  currency: string
+  reference?: string
+  createdTime: number
+  lastModifiedTime: number
+}
+
+export interface CreateAdAccountParams {
+  name: string
+  type: 'BUSINESS'
+  currency: string
+  reference?: string
+}
+
+export interface SearchAdAccountsParams {
+  pageSize?: number
+  pageToken?: string
+  status?: 'ACTIVE' | 'DRAFT' | 'CANCELED'
+}
+
+export interface AdAccountsResult {
+  elements: AdAccount[]
+  paging?: {
+    start: number
+    count: number
+    total: number
+  }
+  metadata?: {
+    nextPageToken?: string
+  }
+}
+
+// Campaign Group Management
+export interface CampaignGroup {
+  id: string
+  name: string
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT' | 'CANCELED' | 'PENDING_DELETION'
+  account: string
+  runSchedule?: {
+    start: number
+    end?: number
+  }
+  totalBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  createdTime: number
+  lastModifiedTime: number
+}
+
+export interface CreateCampaignGroupParams {
+  account: string
+  name: string
+  status: 'ACTIVE' | 'DRAFT'
+  totalBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  runSchedule?: {
+    start: number
+    end?: number
+  }
+}
+
+// Campaign Management
+export type CampaignObjective =
+  | 'BRAND_AWARENESS'
+  | 'WEBSITE_VISITS'
+  | 'ENGAGEMENT'
+  | 'VIDEO_VIEWS'
+  | 'LEAD_GENERATION'
+  | 'WEBSITE_CONVERSIONS'
+  | 'JOB_APPLICANTS'
+
+export type CampaignType = 'TEXT_AD' | 'SPONSORED_UPDATES' | 'SPONSORED_INMAILS' | 'DISPLAY_ADS'
+
+export interface Campaign {
+  id: string
+  name: string
+  account: string
+  campaignGroup: string
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT' | 'CANCELED' | 'PENDING_DELETION'
+  type: CampaignType
+  objective: CampaignObjective
+  costType: 'CPM' | 'CPC' | 'CPV'
+  dailyBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  totalBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  unitCost?: {
+    amount: string
+    currencyCode: string
+  }
+  runSchedule?: {
+    start: number
+    end?: number
+  }
+  createdTime: number
+  lastModifiedTime: number
+}
+
+export interface CreateCampaignParams {
+  account: string
+  campaignGroup: string
+  name: string
+  type: CampaignType
+  objective: CampaignObjective
+  costType: 'CPM' | 'CPC' | 'CPV'
+  status?: 'ACTIVE' | 'DRAFT'
+  dailyBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  totalBudget?: {
+    amount: string
+    currencyCode: string
+  }
+  unitCost?: {
+    amount: string
+    currencyCode: string
+  }
+  runSchedule?: {
+    start: number
+    end?: number
+  }
+}
+
+// Creative Management
+export type CreativeType =
+  | 'SPONSORED_STATUS_UPDATE'
+  | 'SPONSORED_VIDEO'
+  | 'SPONSORED_ARTICLE'
+  | 'SPONSORED_CAROUSEL'
+  | 'TEXT_AD'
+  | 'MESSAGE_AD'
+  | 'CONVERSATION_AD'
+
+export interface Creative {
+  id: string
+  campaign: string
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT' | 'CANCELED'
+  type: CreativeType
+  reference?: string
+  servingStatuses?: string[]
+  createdTime: number
+  lastModifiedTime: number
+}
+
+export interface CreateCreativeParams {
+  campaign: string
+  type: CreativeType
+  status?: 'ACTIVE' | 'DRAFT'
+  reference?: string
+  content?: {
+    shareUrn?: string
+    ugcPostUrn?: string
+  }
+}
+
+// Analytics and Reporting
+export type AnalyticsPivot =
+  | 'ACCOUNT'
+  | 'CAMPAIGN'
+  | 'CAMPAIGN_GROUP'
+  | 'CREATIVE'
+  | 'CONVERSION'
+  | 'COMPANY'
+  | 'MEMBER_COMPANY_SIZE'
+  | 'MEMBER_INDUSTRY'
+  | 'MEMBER_SENIORITY'
+  | 'MEMBER_JOB_TITLE'
+  | 'MEMBER_JOB_FUNCTION'
+  | 'MEMBER_COUNTRY_REGION'
+
+export interface AdAnalyticsParams {
+  accounts?: string[]
+  campaigns?: string[]
+  creatives?: string[]
+  dateRange: {
+    start: {
+      year: number
+      month: number
+      day: number
+    }
+    end: {
+      year: number
+      month: number
+      day: number
+    }
+  }
+  pivot?: AnalyticsPivot
+  fields?: string[]
+  timeGranularity?: 'DAILY' | 'MONTHLY' | 'ALL'
+}
+
+export interface AdAnalyticsMetrics {
+  impressions: number
+  clicks: number
+  totalEngagements: number
+  shares: number
+  likes: number
+  comments: number
+  follows: number
+  costInUsd: number
+  costInLocalCurrency: number
+  dateRange: {
+    start: {
+      year: number
+      month: number
+      day: number
+    }
+    end: {
+      year: number
+      month: number
+      day: number
+    }
+  }
+  pivotValue?: string
+}
+
+export interface AdAnalyticsResult {
+  elements: AdAnalyticsMetrics[]
+  paging?: {
+    start: number
+    count: number
+    total: number
+  }
+}
