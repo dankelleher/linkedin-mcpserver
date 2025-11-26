@@ -125,6 +125,9 @@ export class ClientService {
   /**
    * Searches for people on LinkedIn with advanced filters
    *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval (3-6 month review, <10% approval rate)
+   *
    * @param params - Search parameters
    * @returns People search results
    */
@@ -145,6 +148,9 @@ export class ClientService {
   /**
    * Gets a LinkedIn profile by public ID or URN ID
    *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval
+   *
    * @param params - Profile search parameters
    * @returns LinkedIn profile
    */
@@ -160,6 +166,9 @@ export class ClientService {
 
   /**
    * Searches for jobs on LinkedIn with advanced filters
+   *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval
    *
    * @param params - Job search parameters
    * @returns Job search results
@@ -181,6 +190,9 @@ export class ClientService {
 
   /**
    * Sends a message to a LinkedIn connection
+   *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval
    *
    * @param params - Message parameters
    * @returns Confirmation response
@@ -209,6 +221,9 @@ export class ClientService {
   /**
    * Gets network statistics for the current user
    *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval and r_1st_connections_size scope
+   *
    * @returns Network statistics
    */
   public async getNetworkStats(): Promise<NetworkStats> {
@@ -217,6 +232,9 @@ export class ClientService {
 
   /**
    * Gets the user's LinkedIn connections
+   *
+   * **REQUIRES LINKEDIN PARTNER API ACCESS**
+   * This endpoint requires Partner Program approval and r_1st_connections_size scope
    *
    * @returns List of connections
    */
