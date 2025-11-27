@@ -94,19 +94,21 @@ export const linkedinApiSchemas = {
 
   createAdAccount: {
     name: z.string().describe('Name of the ad account'),
+    type: z.literal('BUSINESS').default('BUSINESS').describe('Account type (always BUSINESS)'),
     currency: z.string().length(3).describe('ISO 4217 currency code (e.g., USD, EUR, GBP)'),
     reference: z.string().optional().describe('Optional reference identifier')
   },
 
   // Campaign Group Management
   searchCampaignGroups: {
-    account: z.string().describe('Ad account URN'),
+    accountId: z.string().describe('Ad account ID'),
     pageSize: z.number().min(1).max(1000).optional().default(100).describe('Number of results per page'),
     pageToken: z.string().optional().describe('Pagination token from previous response'),
     status: z.enum(['ACTIVE', 'PAUSED', 'ARCHIVED', 'DRAFT']).optional().describe('Filter by campaign group status')
   },
 
   getCampaignGroup: {
+    accountId: z.string().describe('Ad account ID'),
     campaignGroupId: z.string().describe('Campaign group ID')
   },
 
@@ -122,7 +124,7 @@ export const linkedinApiSchemas = {
 
   // Campaign Management
   searchCampaigns: {
-    account: z.string().describe('Ad account URN'),
+    accountId: z.string().describe('Ad account ID'),
     campaignGroup: z.string().optional().describe('Filter by campaign group URN'),
     pageSize: z.number().min(1).max(1000).optional().default(100).describe('Number of results per page'),
     pageToken: z.string().optional().describe('Pagination token from previous response'),
@@ -130,6 +132,7 @@ export const linkedinApiSchemas = {
   },
 
   getCampaign: {
+    accountId: z.string().describe('Ad account ID'),
     campaignId: z.string().describe('Campaign ID')
   },
 
@@ -152,6 +155,7 @@ export const linkedinApiSchemas = {
   },
 
   updateCampaignStatus: {
+    accountId: z.string().describe('Ad account ID'),
     campaignId: z.string().describe('Campaign ID'),
     status: z.enum(['ACTIVE', 'PAUSED', 'ARCHIVED']).describe('New status for the campaign')
   },

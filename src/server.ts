@@ -4,6 +4,7 @@ import { inject, injectable } from 'tsyringe'
 import { linkedinApiSchemas } from './schemas/linkedin.schema.js'
 import { ClientService } from './services/client.service.js'
 import { LoggerService } from './services/logger.service.js'
+import { MarketingService } from './services/marketing.service.js'
 import { TokenService } from './services/token.service.js'
 
 import type { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
@@ -21,6 +22,7 @@ export class LinkedInMcpServer {
 
   constructor(
     @inject(ClientService) private readonly clientService: ClientService,
+    @inject(MarketingService) private readonly marketingService: MarketingService,
     @inject(TokenService) private readonly tokenService: TokenService,
     @inject(LoggerService) private readonly logger: LoggerService
   ) {
@@ -270,6 +272,261 @@ export class LinkedInMcpServer {
           return this.createResourceResponse(result)
         } catch (error) {
           this.logger.error('LinkedIn Image Share Creation Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // ===== Marketing API Tools (Requires Marketing API Access) =====
+
+    // Search Ad Accounts Tool
+    this.server.tool(
+      'search-ad-accounts',
+      'Search for accessible LinkedIn ad accounts',
+      linkedinApiSchemas.searchAdAccounts,
+      async (params) => {
+        this.logger.info('Searching Ad Accounts')
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.searchAdAccounts(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Ad Accounts Search Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Get Ad Account Tool
+    this.server.tool(
+      'get-ad-account',
+      'Get details of a specific LinkedIn ad account',
+      linkedinApiSchemas.getAdAccount,
+      async (params) => {
+        this.logger.info('Getting Ad Account', { accountId: params.accountId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.getAdAccount(params.accountId)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Get Ad Account Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Create Ad Account Tool
+    this.server.tool(
+      'create-ad-account',
+      'Create a new LinkedIn ad account (requires Standard tier)',
+      linkedinApiSchemas.createAdAccount,
+      async (params) => {
+        this.logger.info('Creating Ad Account', { name: params.name })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.createAdAccount(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Create Ad Account Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Search Campaign Groups Tool
+    this.server.tool(
+      'search-campaign-groups',
+      'Search campaign groups in a LinkedIn ad account',
+      linkedinApiSchemas.searchCampaignGroups,
+      async (params) => {
+        this.logger.info('Searching Campaign Groups', { accountId: params.accountId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.searchCampaignGroups(params.accountId, params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Campaign Groups Search Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Get Campaign Group Tool
+    this.server.tool(
+      'get-campaign-group',
+      'Get details of a specific campaign group',
+      linkedinApiSchemas.getCampaignGroup,
+      async (params) => {
+        this.logger.info('Getting Campaign Group', { accountId: params.accountId, campaignGroupId: params.campaignGroupId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.getCampaignGroup(params.accountId, params.campaignGroupId)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Get Campaign Group Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Create Campaign Group Tool
+    this.server.tool(
+      'create-campaign-group',
+      'Create a new campaign group in a LinkedIn ad account',
+      linkedinApiSchemas.createCampaignGroup,
+      async (params) => {
+        this.logger.info('Creating Campaign Group', { name: params.name })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.createCampaignGroup(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Create Campaign Group Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Search Campaigns Tool
+    this.server.tool(
+      'search-campaigns',
+      'Search campaigns in a LinkedIn ad account',
+      linkedinApiSchemas.searchCampaigns,
+      async (params) => {
+        this.logger.info('Searching Campaigns', { accountId: params.accountId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.searchCampaigns(params.accountId, params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Campaigns Search Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Get Campaign Tool
+    this.server.tool(
+      'get-campaign',
+      'Get details of a specific campaign',
+      linkedinApiSchemas.getCampaign,
+      async (params) => {
+        this.logger.info('Getting Campaign', { accountId: params.accountId, campaignId: params.campaignId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.getCampaign(params.accountId, params.campaignId)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Get Campaign Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Create Campaign Tool
+    this.server.tool(
+      'create-campaign',
+      'Create a new campaign in a LinkedIn ad account',
+      linkedinApiSchemas.createCampaign,
+      async (params) => {
+        this.logger.info('Creating Campaign', { name: params.name })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.createCampaign(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Create Campaign Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Update Campaign Status Tool
+    this.server.tool(
+      'update-campaign-status',
+      'Update the status of a LinkedIn campaign (activate, pause, or archive)',
+      linkedinApiSchemas.updateCampaignStatus,
+      async (params) => {
+        this.logger.info('Updating Campaign Status', { accountId: params.accountId, campaignId: params.campaignId, status: params.status })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.updateCampaignStatus(params.accountId, params.campaignId, params.status)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Update Campaign Status Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Search Creatives Tool
+    this.server.tool(
+      'search-creatives',
+      'Search creatives in a LinkedIn campaign',
+      linkedinApiSchemas.searchCreatives,
+      async (params) => {
+        this.logger.info('Searching Creatives', { campaign: params.campaign })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.searchCreatives(params.campaign, params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Creatives Search Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Get Creative Tool
+    this.server.tool(
+      'get-creative',
+      'Get details of a specific creative',
+      linkedinApiSchemas.getCreative,
+      async (params) => {
+        this.logger.info('Getting Creative', { creativeId: params.creativeId })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.marketingService.getCreative(params.creativeId)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Get Creative Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Get Ad Analytics Tool
+    this.server.tool(
+      'get-ad-analytics',
+      'Get advertising analytics for LinkedIn campaigns, creatives, or accounts',
+      linkedinApiSchemas.getAdAnalytics,
+      async (params) => {
+        this.logger.info('Getting Ad Analytics')
+        try {
+          await this.ensureAuthenticated()
+          const analyticsParams = {
+            accounts: params.accounts,
+            campaigns: params.campaigns,
+            creatives: params.creatives,
+            dateRange: {
+              start: {
+                year: params.startYear,
+                month: params.startMonth,
+                day: params.startDay
+              },
+              end: {
+                year: params.endYear,
+                month: params.endMonth,
+                day: params.endDay
+              }
+            },
+            pivot: params.pivot,
+            timeGranularity: params.timeGranularity
+          }
+          const result = await this.marketingService.getAdAnalytics(analyticsParams)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('Get Ad Analytics Failed', error)
           throw error
         }
       }

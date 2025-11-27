@@ -1,5 +1,5 @@
 import { inject, injectable } from 'tsyringe'
-import axios, type { AxiosInstance } from 'axios'
+import axios, { type AxiosInstance } from 'axios'
 
 import { LoggerService } from './logger.service.js'
 import { MetricsService } from './metrics.service.js'
