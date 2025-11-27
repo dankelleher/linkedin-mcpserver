@@ -220,6 +220,60 @@ export class LinkedInMcpServer {
         }
       }
     )
+
+    // Create Text Post Tool
+    this.server.tool(
+      'create-text-post',
+      'Create a text-only post on LinkedIn',
+      linkedinApiSchemas.createTextPost,
+      async (params) => {
+        this.logger.info('Creating LinkedIn Text Post')
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.clientService.createTextPost(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('LinkedIn Text Post Creation Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Create Article Share Tool
+    this.server.tool(
+      'create-article-share',
+      'Share an article/URL on LinkedIn with optional commentary',
+      linkedinApiSchemas.createArticleShare,
+      async (params) => {
+        this.logger.info('Creating LinkedIn Article Share', { url: params.url })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.clientService.createArticleShare(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('LinkedIn Article Share Creation Failed', error)
+          throw error
+        }
+      }
+    )
+
+    // Create Image Share Tool
+    this.server.tool(
+      'create-image-share',
+      'Share an image on LinkedIn with optional commentary',
+      linkedinApiSchemas.createImageShare,
+      async (params) => {
+        this.logger.info('Creating LinkedIn Image Share', { imageUrl: params.imageUrl })
+        try {
+          await this.ensureAuthenticated()
+          const result = await this.clientService.createImageShare(params)
+          return this.createResourceResponse(result)
+        } catch (error) {
+          this.logger.error('LinkedIn Image Share Creation Failed', error)
+          throw error
+        }
+      }
+    )
   }
 
   private createResourceResponse(data: unknown): McpResourceResponse {

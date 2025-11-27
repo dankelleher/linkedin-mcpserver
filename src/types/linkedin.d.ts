@@ -137,3 +137,58 @@ export interface ClientMetrics {
   lastRequestTimestamp: number | null
   averageRequestTime?: number
 }
+
+/**
+ * Share API types for creating LinkedIn posts
+ */
+
+export type ShareVisibility = 'PUBLIC' | 'CONNECTIONS'
+
+export interface CreateTextPostParams {
+  text: string
+  visibility?: ShareVisibility
+}
+
+export interface CreateArticleShareParams {
+  url: string
+  text?: string
+  title?: string
+  description?: string
+  visibility?: ShareVisibility
+}
+
+export interface CreateImageShareParams {
+  imageUrl: string
+  text?: string
+  visibility?: ShareVisibility
+}
+
+export interface ShareResponse {
+  id: string
+  createdAt: number
+  author: string
+}
+
+export interface AssetRegistrationRequest {
+  registerUploadRequest: {
+    recipes: string[]
+    owner: string
+    serviceRelationships: Array<{
+      relationshipType: string
+      identifier: string
+    }>
+  }
+}
+
+export interface AssetRegistrationResponse {
+  value: {
+    uploadMechanism: {
+      'com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest': {
+        uploadUrl: string
+        headers: Record<string, string>
+      }
+    }
+    asset: string
+    mediaArtifact: string
+  }
+}
