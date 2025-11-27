@@ -93,9 +93,16 @@ export class TokenService {
    */
   private async fetchToken(grantType: 'client_credentials' | 'refresh_token'): Promise<void> {
     try {
+      const clientId = this.getClientId()
+      const clientSecret = this.getClientSecret()
+
+      if (!clientId || !clientSecret) {
+        throw new Error('Client credentials not configured. Cannot refresh token without LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET.')
+      }
+
       const params: Record<string, string> = {
-        client_id: this.getClientId(),
-        client_secret: this.getClientSecret(),
+        client_id: clientId,
+        client_secret: clientSecret,
         grant_type: grantType
       }
 
