@@ -210,12 +210,45 @@ export class ClientService {
   }
 
   /**
-   * Gets the current user's LinkedIn profile
+   * Gets the current user's LinkedIn profile using OpenID Connect userinfo endpoint
    *
    * @returns Current user profile
    */
   public async getMyProfile(): Promise<LinkedInProfile> {
-    return this.makeRequest<LinkedInProfile>('get', '/me')
+    try {
+      await this.tokenService.authenticate()
+      const accessToken = this.tokenService.getAccessToken()
+
+      const response = await this.axiosClient.get<{
+        sub: string
+        given_name: string
+        family_name: string
+        name?: string
+        picture?: string
+        email?: string
+        email_verified?: boolean
+        locale?: string
+      }>('/v2/userinfo', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+
+      // Map OpenID Connect userinfo response to LinkedInProfile format
+      return {
+        id: response.data.sub,
+        firstName: response.data.given_name,
+        lastName: response.data.family_name,
+        profilePicture: response.data.picture
+          ? {
+              displayImage: response.data.picture
+            }
+          : undefined
+      }
+    } catch (error) {
+      this.loggerService.error('Failed to get profile via userinfo endpoint', error)
+      throw error
+    }
   }
 
   /**
